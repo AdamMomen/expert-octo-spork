@@ -61,6 +61,16 @@ export default function IntegrationManager() {
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <h1>🔬 Integration Test Manager</h1>
       
+      <div style={{ 
+        background: '#fff3cd', 
+        border: '1px solid #ffc107',
+        padding: '1rem',
+        borderRadius: '4px',
+        marginBottom: '1rem'
+      }}>
+        <strong>⚠️ Prerequisites:</strong> Make sure to run <code>npm run dev</code> in another terminal first!
+      </div>
+      
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
         {/* Integration List */}
         <div>

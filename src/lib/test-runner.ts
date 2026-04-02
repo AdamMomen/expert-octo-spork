@@ -123,7 +123,12 @@ async function executeStep(
   switch (step.action) {
     case 'goto':
       logs.push(`  Navigating to: ${step.url}`)
-      await page.goto(step.url!)
+      try {
+        await page.goto(step.url!, { timeout: 10000, waitUntil: 'networkidle' })
+      } catch (error) {
+        logs.push(`  ❌ Failed to load page - is the dev server running on port 3000?`)
+        throw error
+      }
       break
       
     case 'fill':

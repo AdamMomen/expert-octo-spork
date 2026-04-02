@@ -35,10 +35,11 @@ export default function InteractiveDemo() {
     abortRef.current = new AbortController()
     
     try {
+      const integrationId = broken ? 'demo-login-broken' : 'demo-login'
       const response = await fetch('/api/test/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ broken }),
+        body: JSON.stringify({ integrationId }),
         signal: abortRef.current.signal
       })
       
