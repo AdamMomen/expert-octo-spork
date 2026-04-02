@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { runTest as runTestApi } from '@/src/lib/api'
 
 interface TestStep {
   action: string
@@ -36,12 +37,7 @@ export default function InteractiveDemo() {
     
     try {
       const integrationId = broken ? 'demo-login-broken' : 'demo-login'
-      const response = await fetch('/api/test/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ integrationId }),
-        signal: abortRef.current.signal
-      })
+      const response = await runTestApi(integrationId)
       
       if (!response.body) {
         throw new Error('No response body')

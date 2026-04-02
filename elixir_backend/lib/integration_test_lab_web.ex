@@ -57,8 +57,6 @@ defmodule IntegrationTestLabWeb do
   defp view_helpers do
     quote do
       import Phoenix.View
-
-      import IntegrationTestLabWeb.ErrorHelpers
     end
   end
 
