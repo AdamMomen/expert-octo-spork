@@ -7,7 +7,12 @@ defmodule IntegrationTestLabWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
-    plug CORSPlug, origin: "*"
+    plug CORSPlug,
+      origin: "*",
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      headers: ["Authorization", "Content-Type", "Accept", "Origin", "User-Agent", "DNT", "Cache-Control", "X-Mx-ReqToken", "Keep-Alive", "X-Requested-With", "If-Modified-Since", "X-CSRF-Token"],
+      expose: ["Content-Type", "X-Request-Id"],
+      max_age: 86400
   end
 
   scope "/api", IntegrationTestLabWeb do
