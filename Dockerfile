@@ -1,14 +1,13 @@
 FROM node:20-alpine
 
-# Install Playwright dependencies
+# Install Playwright dependencies for Chromium
 RUN apk add --no-cache \
     chromium \
     nss \
     freetype \
     harfbuzz \
     ca-certificates \
-    ttf-freefont \
-    postgresql-client
+    ttf-freefont
 
 WORKDIR /app
 
@@ -18,16 +17,13 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source
+# Copy source code
 COPY . .
 
-# Build the application
+# Build the Next.js application
 RUN npm run build
 
-# Run migrations
-RUN npm run db:migrate
-
-# Set environment for Playwright
+# Set environment for Playwright to use system Chromium
 ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin/chromium-browser
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 

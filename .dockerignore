@@ -1,0 +1,10 @@
+.git
+.next
+node_modules
+*.md
+.env.local
+.env.local.example
+src/integrations/runs/
+artifacts/
+.DS_Store
+*.log
