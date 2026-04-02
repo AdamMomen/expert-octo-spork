@@ -33,9 +33,11 @@ export async function runIntegrationTest(
   logs.push(`Vendor: ${integration.vendor}`)
   logs.push(`Steps: ${integration.steps.length}`)
   
+  // Launch browser with explicit executable path for Docker
   const browser = await chromium.launch({ 
-    headless: options.headless ?? false,
-    slowMo: options.slowMo ?? 500
+    headless: options.headless ?? true,  // Use headless in production
+    slowMo: options.slowMo ?? 500,
+    executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined
   })
   
   const context = await browser.newContext({
