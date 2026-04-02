@@ -1,17 +1,31 @@
 import { NextResponse } from 'next/server'
 
-const ELIXIR_API = 'http://localhost:4000'
+// Hardcoded integrations for demo
+const integrations = [
+  {
+    id: 'demo-login',
+    name: 'Demo Site Login',
+    vendor: 'DemoCorp',
+    steps: [
+      { action: 'goto', url: 'http://localhost:3000/demo' },
+      { action: 'fill', selector: '[data-testid="email-input"]', value: 'test@example.com' },
+      { action: 'fill', selector: '[data-testid="password-input"]', value: 'password123' },
+      { action: 'click', selector: '[data-testid="login-button"]' }
+    ],
+    lastRun: null
+  },
+  {
+    id: 'demo-login-broken',
+    name: 'Demo Site Login (Broken)',
+    vendor: 'DemoCorp',
+    steps: [
+      { action: 'goto', url: 'http://localhost:3000/demo?broken=true' },
+      { action: 'fill', selector: '[data-testid="email-input"]', value: 'test@example.com', timeout: 3000 }
+    ],
+    lastRun: null
+  }
+]
 
 export async function GET() {
-  try {
-    const res = await fetch(`${ELIXIR_API}/api/integrations`)
-    const data = await res.json()
-    return NextResponse.json(data)
-  } catch (error) {
-    console.error('Error fetching from Elixir backend:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch integrations' },
-      { status: 500 }
-    )
-  }
+  return NextResponse.json({ integrations })
 }
