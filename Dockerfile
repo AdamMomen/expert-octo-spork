@@ -25,7 +25,7 @@ RUN MIX_ENV=prod mix release
 # ============================================================================
 # STAGE 2: Build Next.js Frontend  
 # ============================================================================
-FROM node:20-alpine AS node-builder
+FROM mcr.microsoft.com/playwright:v1.42.1-jammy AS node-builder
 
 WORKDIR /app
 
@@ -40,23 +40,14 @@ RUN npm run build
 # ============================================================================
 # STAGE 3: Runtime - Combined Services
 # ============================================================================
-FROM alpine:3.18.4
+FROM mcr.microsoft.com/playwright:v1.42.1-jammy
 
-# Install runtime dependencies for both Node and Erlang
-RUN apk add --no-cache \
-    # Node.js dependencies
-    nodejs \
-    npm \
-    # Erlang/Elixir dependencies
-    openssl \
-    libgcc \
-    libstdc++ \
-    ncurses-libs \
-    # Process management
-    supervisor \
-    # Utilities
-    bash \
-    curl
+# Install Elixir/Erlang runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libssl3 \
+    libncurses5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -70,7 +61,11 @@ COPY --from=node-builder /app/node_modules ./node_modules
 COPY --from=node-builder /app/src ./src
 COPY --from=node-builder /app/next.config.js ./
 # Copy public directory if it exists
-RUN if [ -d "/app/public" ]; then cp -r /app/public ./public; fi
+COPY --from=node-builder /app/public ./public 2>/dev/null || true
+
+# Set Playwright to use installed browsers
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 # Create startup script
 RUN cat > /app/start.sh << 'EOF'
@@ -117,7 +112,7 @@ EOF
 RUN chmod +x /app/start.sh
 
 # Create non-root user
-RUN adduser -D appuser && chown -R appuser /app
+RUN useradd -m appuser && chown -R appuser /app
 USER appuser
 
 # Expose both ports
