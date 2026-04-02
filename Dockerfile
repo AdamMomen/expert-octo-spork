@@ -64,7 +64,8 @@ COPY --from=node-builder /app/package*.json ./
 COPY --from=node-builder /app/node_modules ./node_modules
 COPY --from=node-builder /app/src ./src
 COPY --from=node-builder /app/next.config.js ./
-COPY --from=node-builder /app/public ./public 2>/dev/null || true
+# Create public directory (optional)
+RUN mkdir -p ./public
 
 # Copy Playwright browsers from builder
 COPY --from=node-builder /ms-playwright /ms-playwright
