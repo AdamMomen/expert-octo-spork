@@ -1,0 +1,10 @@
+.git
+.gitignore
+README.md
+*.md
+.env
+Dockerfile
+.dockerignore
+_build
+deps
+assets/node_modules
