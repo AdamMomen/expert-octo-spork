@@ -1,5 +1,5 @@
 # Multi-service Dockerfile: Next.js + Elixir Backend
-# This runs both the TypeScript frontend and Elixir backend in a single container
+# Force rebuild: v3
 
 # ============================================================================
 # STAGE 1: Build Elixir Backend
@@ -37,12 +37,16 @@ RUN npm install
 COPY . .
 RUN npm run build
 
+# Install Playwright browsers explicitly
+RUN npx playwright install chromium
+RUN npx playwright install-deps chromium
+
 # ============================================================================
 # STAGE 3: Runtime - Combined Services
 # ============================================================================
 FROM mcr.microsoft.com/playwright:v1.42.1-jammy
 
-# Install Elixir/Erlang runtime dependencies
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     libssl3 \
     libncurses5 \
@@ -60,55 +64,17 @@ COPY --from=node-builder /app/package*.json ./
 COPY --from=node-builder /app/node_modules ./node_modules
 COPY --from=node-builder /app/src ./src
 COPY --from=node-builder /app/next.config.js ./
-# Copy public directory if it exists
 COPY --from=node-builder /app/public ./public 2>/dev/null || true
 
-# Set Playwright to use installed browsers
+# Copy Playwright browsers from builder
+COPY --from=node-builder /ms-playwright /ms-playwright
+
+# Set Playwright environment
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
-# Create startup script
-RUN cat > /app/start.sh << 'EOF'
-#!/bin/bash
-set -e
-
-echo "🚀 Starting Integration Test Lab..."
-echo ""
-
-# Start Elixir backend in background
-echo "📡 Starting Elixir backend on port 4000..."
-./elixir/bin/integration_test_lab start &
-ELIXIR_PID=$!
-
-# Wait for Elixir to be ready
-echo "⏳ Waiting for Elixir backend..."
-for i in {1..30}; do
-    if curl -s http://localhost:4000/api/integrations > /dev/null 2>&1; then
-        echo "✅ Elixir backend is ready!"
-        break
-    fi
-    sleep 1
-done
-
-echo ""
-echo "🎨 Starting Next.js frontend on port 3000..."
-npm start &
-NODE_PID=$!
-
-echo ""
-echo "========================================"
-echo "✨ Services are running!"
-echo "========================================"
-echo "Next.js Frontend: http://localhost:3000"
-echo "Elixir Backend:   http://localhost:4000"
-echo ""
-echo "Press Ctrl+C to stop both services"
-echo ""
-
-# Wait for both processes
-wait $ELIXIR_PID $NODE_PID
-EOF
-
+# Copy startup script
+COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
 # Create non-root user
@@ -117,10 +83,6 @@ USER appuser
 
 # Expose both ports
 EXPOSE 3000 4000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:3000 && curl -f http://localhost:4000/api/integrations || exit 1
 
 # Start both services
 CMD ["/app/start.sh"]
